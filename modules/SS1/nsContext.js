@@ -330,6 +330,7 @@ exports.getDefaultContext = function(opts) {
     nlapiGetRecordType : nlapiGetRecordType,
     nlapiSetRecordType : nlapiSetRecordType,
     nlapiSubmitRecord : nlapiSubmitRecord,
+    nlapiGetFieldValue : nlapiGetFieldValue,
     nlapiLoadRecord : nlapiLoadRecord,
     nlapiTransformRecord : nlapiTransformRecord,
     nlobjSearchFilter : nlobjSearchFilter,
