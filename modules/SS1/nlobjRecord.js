@@ -53,6 +53,7 @@ var nlobjRecord = function (recordtype, internalid) {
     } else {
       lineItemOptions[group] = [];
       items = lineItemOptions[group];
+      items[line - 1] = {};
       items[line-1][name] = value;
     }
   }
