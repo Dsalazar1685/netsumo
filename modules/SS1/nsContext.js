@@ -347,7 +347,8 @@ exports.getDefaultContext = function(opts) {
     nlapiDateToString: nlapiDateToString,
     nlapiRequestURL: nlapiRequestURL,
     nlapiEscapeXML: nlapiEscapeXML,
-    addEndpoint: addEndpoint
+    addEndpoint: addEndpoint,
+    nlobjError: nlobjError,
   };
 
 };
