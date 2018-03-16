@@ -10,14 +10,18 @@ var nlobjRecord = function (recordtype, internalid) {
 
   var id = internalid;
   var type = recordtype;
-  var lineItems = [];
-  var addressBookLines = [];
   var fields = [];
   var fieldValues = {};
   var currentLineItems =  {
     'item':[],
-    'addressbook':[]
+    'addressbook':[],
+    'contactroles': [],
   };
+  var lineItemOptions = {
+    'item' : [],
+    'addressbook' : [],
+    'contactroles' : [],
+  }
 
 
   var setFieldValue = function(name, value) {
@@ -35,45 +39,42 @@ var nlobjRecord = function (recordtype, internalid) {
   }
 
   var getLineItemCount = function(group) {
-    if(group == 'item') {
-      return lineItems.length
-    } else if(group == 'addressbook') {
-      return addressBookLines.length
-    } else {
-      return 0
+    var items = lineItemOptions[group];
+    if (items) {
+      return items.length;
     }
+    return 0;
   }
 
-  var setLineItemValue = function(group,name,linenum,value) {
-    if(group == 'item') {
-      lineItems[linenum-1][name] = value
+  var setLineItemValue = function(group,name,line,value) {
+    var items = lineItemOptions[group];
+    if (items) {
+      items[line-1][name] = value;
     } else {
-      throw new Error('NETSIM ERROR: Line item group: '+group+' is unsupported.');
+      lineItemOptions[group] = [];
+      items = lineItemOptions[group];
+      items[line-1][name] = value;
     }
   }
 
   var getLineItemValue = function(group,name,line) {
-    if(group == 'item') {
-      return lineItems[line-1][name]
-    } else if(group == 'addressbook') {
-      return addressBookLines[line-1][name]
-    } else {
-      throw new Error('NETSIM ERROR: Line item group: '+group+' is unsupported.');
+    var items = lineItemOptions[group];
+    if (items) {
+      return items[line - 1][name]
     }
+    return undefined;
   }
 
   var selectNewLineItem = function(group) {
-    if(group == 'item') {
-      currentLineItems[group] = {}
-      currentLineItems[group]['id'] = id+'_'+lineItems.length;
-      currentLineItems[group]['line'] = lineItems.length;
-    } else if(group == 'addressbook') {
+    if (group === 'addressbook') {
       currentLineItems[group] = {}
       currentLineItems[group]['id'] = id+'_'+lineItems.length;
       currentLineItems[group]['line'] = lineItems.length;
       currentLineItems[group]['addressbookaddress'] = [];
     } else {
-      throw new Error('NETSIM ERROR: Line item group: '+group+' is unsupported.');
+      currentLineItems[group] = {}
+      currentLineItems[group]['id'] = id+'_'+lineItems.length;
+      currentLineItems[group]['line'] = lineItems.length;
     }
   }
 
@@ -83,13 +84,12 @@ var nlobjRecord = function (recordtype, internalid) {
     return subRecord;
   }
 
-  var selectLineItem = function(group,linenum) {
-    if(group == 'item') {
-      currentLineItems[group] = lineItems[linenum-1]
-    } else if(group == 'addressbook') {
-      currentLineItems[group] = addressBookLines[linenum-1]
+  var selectLineItem = function(group, line) {
+    var items = lineItemOptions[group];
+    if (items) {
+      currentLineItems[group] = items[line - 1];
     } else {
-      throw new Error('NETSIM ERROR: Line item group: '+group+' is unsupported.');
+      throw new Error('NETSIM ERROR: Group ' + group + ' has not been created.');
     }
   }
 
