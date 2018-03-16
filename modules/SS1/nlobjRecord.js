@@ -13,9 +13,9 @@ var nlobjRecord = function (recordtype, internalid) {
   var fields = [];
   var fieldValues = {};
   var currentLineItems =  {
-    'item':[],
-    'addressbook':[],
-    'contactroles': [],
+    'item': {},
+    'addressbook': {},
+    'contactroles': {},
   };
   var lineItemOptions = {
     'item' : [],
@@ -49,6 +49,9 @@ var nlobjRecord = function (recordtype, internalid) {
   var setLineItemValue = function(group,name,line,value) {
     var items = lineItemOptions[group];
     if (items) {
+      if(!items[line - 1]) {
+        items[line - 1] = {};
+      }
       items[line-1][name] = value;
     } else {
       lineItemOptions[group] = [];
@@ -103,12 +106,14 @@ var nlobjRecord = function (recordtype, internalid) {
   }
 
   var commitLineItem = function(group,ignoreRecalc) {
-    if(group == 'item') {
-      lineItems.push(currentLineItems[group])
-    } else if(group == 'addressbook') {
-      addressBookLines.push(currentLineItems[group])
-    } else {
-      throw new Error('NETSIM ERROR: Line item group: '+group+' is unsupported.');
+    var items = lineItemOptions[group];
+    var currentItem = currentLineItems[group];
+    if (items && currentItem) {
+      items.push(currentLineItems[group]);
+    } else if (currentItem) {
+      items = [];
+      items.push(currentItem);
+      lineItemOptions[group] = items;
     }
   }
 
@@ -138,27 +143,25 @@ var nlobjRecord = function (recordtype, internalid) {
   //This funtion is for netsim use only, do not use as part of a suitescript
   //as it is not part of the netsuite api.
   var transform = function(transformType, newRecordId) {
-    var clonedLineItems = clone(lineItems)
-    var clonedRecord = nlobjRecord(transformType,newRecordId)
+    var clonedLineItems = clone(lineItemOptions)
+    var clonedRecord = nlobjRecord(transformType, newRecordId)
 
-    for(var i = 0; i < clonedLineItems.length; i++) {
-      clonedRecord.selectNewLineItem('item')
+    var clonedItemKeys = Object.keys(clonedLineItems);
+    for(var i = 0; i < clonedItemKeys.length; i++) {
+      var item = clonedItemKeys[i];
+      var lineItems = clonedLineItems[item];
+      for (var j = 0 ; j < lineItems.length ; j ++) {
+        clonedRecord.selectNewLineItem(item);
+        var lineItemKeys = Object.keys(lineItem)
+        for (var x = 0 ; x < lineItemKeys.length ; x ++) {
+          var name = lineItemKeys[x]
+          var value = lineItem[name]
 
-      var lineItem = clonedLineItems[i];
-      var lineItemKeys = Object.keys(lineItem)
-
-      for(var x = 0; x < lineItemKeys.length; x++) {
-        var name = lineItemKeys[x]
-        var value = lineItem[name]
-
-        clonedRecord.setCurrentLineItemValue('item', name, value)
+          clonedRecord.setCurrentLineItemValue(item, name, value)
+        }
+        clonedRecord.commitLineItem(item)
       }
-
-      clonedRecord.commitLineItem('item')
-
-
     }
-
     return clonedRecord
   }
 
