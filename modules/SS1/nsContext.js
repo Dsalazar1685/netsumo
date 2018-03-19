@@ -31,7 +31,22 @@ exports.getDefaultContext = function(opts) {
   var currentRecord = null;
   var endPoints = [];
   var nlobjContext;
+  var scriptStatus = 'INPROGRESS'; //netsumo usage only
 
+  var nlapiScheduleScript = function(scriptId, deployId, params) {
+    nlobjContext.decreaseUnits(20);
+    scriptStatus = 'QUEUED';
+    return 'QUEUED';
+  }
+
+  var nlapiYieldScript = function() {
+    return {
+      status: 'RESUME', //yield status - RESUME or FAILURE
+      reason: 'SS_NLAPIYIELDSCRIPT', //Reason for yielding
+      size: 1, //size of saved recovery point object
+      information: 'someinfo' //additional information about yield status
+    }
+  }
 
    var nlapiLogExecution = function(type,title,details) {
     if(defaultContextOptions.suppressNlapiLogOutput) {
@@ -68,11 +83,23 @@ exports.getDefaultContext = function(opts) {
   };
 
   var nlapiCreateRecord = function(type,initializeValues) {
+    //if standard transaction
+    nlobjContext.decreaseUnits(10);
+    //else if standard non-transaction
+    //nlobjContext.decreaseUnits(5);
+    //else if custom record;
+    //nlobjContext.decreaseUnits(2);
     var record = new nlobjRecord(type);
     return record;
   };
 
   var nlapiDeleteRecord = function(type,id) {
+    //if standard transaction
+    nlobjContext.decreaseUnits(20);
+    //else if standard non-transaction
+    //nlobjContext.decreaseUnits(10);
+    //else if custom record;
+    //nlobjContext.decreaseUnits(4);
     for(var i = 0; i < recordsArray.length; i++) {
       var record = recordsArray[i];
       if(record.getRecordType() == type && record.getId() == id) {
@@ -84,7 +111,12 @@ exports.getDefaultContext = function(opts) {
   };
 
   var nlapiSubmitRecord = function(record,doSourcing,ignoreMandatoryFields) {
-
+    //if standard transaction
+    nlobjContext.decreaseUnits(20);
+    //else if standard non-transaction
+    //nlobjContext.decreaseUnits(10);
+    //else if custom record;
+    //nlobjContext.decreaseUnits(4);
     var updatedExistingRecord = false;
     for(var i = 0; i < recordsArray.length; i++) {
       var storedRecord = recordsArray[i];
@@ -107,6 +139,12 @@ exports.getDefaultContext = function(opts) {
   };
 
   var nlapiLoadRecord = function(type,id,initializeValues) {
+    //if standard transaction
+    nlobjContext.decreaseUnits(10);
+    //else if standard non-transaction
+    //nlobjContext.decreaseUnits(5);
+    //else if custom record;
+    //nlobjContext.decreaseUnits(2);
     for(var i = 0; i < recordsArray.length; i++) {
       var record = recordsArray[i];
       if(record.getRecordType() == type && record.getId() == id) {
@@ -117,6 +155,12 @@ exports.getDefaultContext = function(opts) {
   };
 
   var nlapiTransformRecord = function(type,id,transformType,transformValues) {
+    //if standard transaction
+    nlobjContext.decreaseUnits(10);
+    //else if standard non-transaction
+    //nlobjContext.decreaseUnits(5);
+    //else if custom record;
+    //nlobjContext.decreaseUnits(2);
 
     var record = nlapiLoadRecord(type,id);
     var transformedRecord = record.transform(transformType, getNextAvailableRecordId());
@@ -310,7 +354,8 @@ exports.getDefaultContext = function(opts) {
     }
     return response;
   }
-   var nlapiEscapeXML = function(text){
+
+  var nlapiEscapeXML = function(text){
       return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&apos;').replace(/"/g, ' &quot;');
     }
 
@@ -321,6 +366,10 @@ exports.getDefaultContext = function(opts) {
     endPoints.push(endPoint);
   }
 
+ //netsumo usage only:
+  var getScriptStatus = function() {
+    return scriptStatus;
+  }
 
   return {
     nlapiLogExecution : nlapiLogExecution,
@@ -349,6 +398,9 @@ exports.getDefaultContext = function(opts) {
     nlapiEscapeXML: nlapiEscapeXML,
     addEndpoint: addEndpoint,
     nlobjError: nlobjError,
+    nlapiScheduleScript: nlapiScheduleScript,
+    nlapiYieldScript: nlapiYieldScript,
+    getScriptStatus: getScriptStatus,
   };
 
 };
