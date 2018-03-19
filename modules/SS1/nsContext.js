@@ -30,7 +30,6 @@ exports.getDefaultContext = function(opts) {
   var recordType = '';
   var currentRecord = null;
   var endPoints = [];
-  var nlobjContext;
   var scriptStatus = 'INPROGRESS'; //netsumo usage only
 
   var nlapiScheduleScript = function(scriptId, deployId, params) {
