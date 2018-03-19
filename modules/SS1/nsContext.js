@@ -32,7 +32,9 @@ exports.getDefaultContext = function(opts) {
   var endPoints = [];
   var nlobjContext;
 
-
+  var nlapiScheduleScript = function() {
+    nlobjContext.decreaseUnits(20);
+  }
    var nlapiLogExecution = function(type,title,details) {
     if(defaultContextOptions.suppressNlapiLogOutput) {
       return
@@ -68,11 +70,23 @@ exports.getDefaultContext = function(opts) {
   };
 
   var nlapiCreateRecord = function(type,initializeValues) {
+    //if standard transaction
+    nlobjContext.decreaseUnits(10);
+    //else if standard non-transaction
+    //nlobjContext.decreaseUnits(5);
+    //else if custom record;
+    //nlobjContext.decreaseUnits(2);
     var record = new nlobjRecord(type);
     return record;
   };
 
   var nlapiDeleteRecord = function(type,id) {
+    //if standard transaction
+    nlobjContext.decreaseUnits(20);
+    //else if standard non-transaction
+    //nlobjContext.decreaseUnits(10);
+    //else if custom record;
+    //nlobjContext.decreaseUnits(4);
     for(var i = 0; i < recordsArray.length; i++) {
       var record = recordsArray[i];
       if(record.getRecordType() == type && record.getId() == id) {
@@ -84,7 +98,12 @@ exports.getDefaultContext = function(opts) {
   };
 
   var nlapiSubmitRecord = function(record,doSourcing,ignoreMandatoryFields) {
-
+    //if standard transaction
+    nlobjContext.decreaseUnits(20);
+    //else if standard non-transaction
+    //nlobjContext.decreaseUnits(10);
+    //else if custom record;
+    //nlobjContext.decreaseUnits(4);
     var updatedExistingRecord = false;
     for(var i = 0; i < recordsArray.length; i++) {
       var storedRecord = recordsArray[i];
@@ -107,6 +126,12 @@ exports.getDefaultContext = function(opts) {
   };
 
   var nlapiLoadRecord = function(type,id,initializeValues) {
+    //if standard transaction
+    nlobjContext.decreaseUnits(10);
+    //else if standard non-transaction
+    //nlobjContext.decreaseUnits(5);
+    //else if custom record;
+    //nlobjContext.decreaseUnits(2);
     for(var i = 0; i < recordsArray.length; i++) {
       var record = recordsArray[i];
       if(record.getRecordType() == type && record.getId() == id) {
@@ -117,6 +142,12 @@ exports.getDefaultContext = function(opts) {
   };
 
   var nlapiTransformRecord = function(type,id,transformType,transformValues) {
+    //if standard transaction
+    nlobjContext.decreaseUnits(10);
+    //else if standard non-transaction
+    //nlobjContext.decreaseUnits(5);
+    //else if custom record;
+    //nlobjContext.decreaseUnits(2);
 
     var record = nlapiLoadRecord(type,id);
     var transformedRecord = record.transform(transformType, getNextAvailableRecordId());
