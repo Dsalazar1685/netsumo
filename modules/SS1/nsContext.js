@@ -4,7 +4,7 @@ var nlobjSearchColumn = require('./nlobjSearchColumn.js');
 var nlobjSearchResult = require('./nlobjSearchResult.js');
 var nlobjResponse = require('./nlobjResponse.js')
 var nlobjError = require('./nlobjError.js');
-var nlobjContext = require('./nlobjContext.js');
+var context = require('./nlobjContext.js');
 var nodemailer = require('nodemailer');
 var pickupTransport = require('nodemailer-pickup-transport');
 
@@ -31,6 +31,7 @@ exports.getDefaultContext = function(opts) {
   var currentRecord = null;
   var endPoints = [];
   var scriptStatus = 'INPROGRESS'; //netsumo usage only
+  var nlobjContext = context();
 
   var nlapiScheduleScript = function(scriptId, deployId, params) {
     nlobjContext.decreaseUnits(20);
@@ -400,6 +401,7 @@ exports.getDefaultContext = function(opts) {
     nlapiScheduleScript: nlapiScheduleScript,
     nlapiYieldScript: nlapiYieldScript,
     getScriptStatus: getScriptStatus,
+    nlapiGetContext: nlapiGetContext,
   };
 
 };
