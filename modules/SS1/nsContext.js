@@ -31,10 +31,23 @@ exports.getDefaultContext = function(opts) {
   var currentRecord = null;
   var endPoints = [];
   var nlobjContext;
+  var scriptStatus = 'INPROGRESS'; //netsumo usage only
 
-  var nlapiScheduleScript = function() {
+  var nlapiScheduleScript = function(scriptId, deployId, params) {
     nlobjContext.decreaseUnits(20);
+    scriptStatus = 'QUEUED';
+    return 'QUEUED';
   }
+
+  var nlapiYieldScript = function() {
+    return {
+      status: 'RESUME', //yield status - RESUME or FAILURE
+      reason: 'SS_NLAPIYIELDSCRIPT', //Reason for yielding
+      size: 1, //size of saved recovery point object
+      information: 'someinfo' //additional information about yield status
+    }
+  }
+
    var nlapiLogExecution = function(type,title,details) {
     if(defaultContextOptions.suppressNlapiLogOutput) {
       return
@@ -341,7 +354,8 @@ exports.getDefaultContext = function(opts) {
     }
     return response;
   }
-   var nlapiEscapeXML = function(text){
+
+  var nlapiEscapeXML = function(text){
       return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&apos;').replace(/"/g, ' &quot;');
     }
 
@@ -352,6 +366,10 @@ exports.getDefaultContext = function(opts) {
     endPoints.push(endPoint);
   }
 
+ //netsumo usage only:
+  var getScriptStatus = function() {
+    return scriptStatus;
+  }
 
   return {
     nlapiLogExecution : nlapiLogExecution,
@@ -380,6 +398,9 @@ exports.getDefaultContext = function(opts) {
     nlapiEscapeXML: nlapiEscapeXML,
     addEndpoint: addEndpoint,
     nlobjError: nlobjError,
+    nlapiScheduleScript: nlapiScheduleScript,
+    nlapiYieldScript: nlapiYieldScript,
+    getScriptStatus: getScriptStatus,
   };
 
 };

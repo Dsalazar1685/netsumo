@@ -42,6 +42,11 @@ module.exports = function () {
     usage = usage - number;
   }
 
+  var resetUnits = function() {
+    //Not available in Netsuite - this is used to mock script rescheduling unit resets
+    usage = 1000;
+  }
+
   return {
     getName : getName,
     getUser : getUser,
@@ -50,5 +55,6 @@ module.exports = function () {
     getScriptId : getScriptId,
     getDeploymentId : getDeploymentId,
     getRemainingUsage : getRemainingUsage,
+    resetUnits: resetUnits,
   };
 }
