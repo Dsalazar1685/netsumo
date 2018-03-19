@@ -56,5 +56,6 @@ module.exports = function () {
     getDeploymentId : getDeploymentId,
     getRemainingUsage : getRemainingUsage,
     resetUnits: resetUnits,
+    decreaseUnits: decreaseUnits,
   };
 }
