@@ -165,6 +165,36 @@ var nlobjRecord = function (recordtype, internalid) {
     return clonedRecord
   }
 
+  var setAllFieldValues = function(values) {
+    fieldValues = Object.assign({}, values);
+  }
+
+  var setAllFields = function(newFields) {
+    fields = fields.slice();
+  }
+
+  var setAllCurrentLineItems = function(lineItems) {
+    currentLineItems = Object.assign({}, lineItems);
+  }
+
+  var setAllLineItemOptions = function(options) {
+    lineItemOptions = Object.assign({}, options);
+  }
+
+  var setId = function(newId) {
+    id = newId;
+  }
+
+  var copy = function() {
+    var record = nlobjRecord(type);
+    record.setAllFieldValues(fieldValues);
+    record.setAllFields(fields);
+    record.setAllCurrentLineItems(currentLineItems);
+    record.setAllLineItemOptions(lineItemOptions);
+    record.setId(id);
+    return record;
+  }
+
   return {
     setFieldValue : setFieldValue,
     getFieldValue : getFieldValue,
@@ -181,7 +211,13 @@ var nlobjRecord = function (recordtype, internalid) {
     getField:getField,
     addField:addField,
     selectLineItem:selectLineItem,
-    viewCurrentLineItemSubrecord:viewCurrentLineItemSubrecord
+    viewCurrentLineItemSubrecord:viewCurrentLineItemSubrecord,
+    setAllFieldValues : setAllFieldValues,
+    setAllFields : setAllFields,
+    setAllCurrentLineItems : setAllCurrentLineItems,
+    setAllLineItemOptions : setAllLineItemOptions,
+    setId : setId,
+    copy: copy,
   }
 
 }

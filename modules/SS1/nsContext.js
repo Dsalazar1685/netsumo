@@ -29,6 +29,7 @@ exports.getDefaultContext = function(opts) {
   var recordId = 0;
   var recordType = '';
   var currentRecord = null;
+  var oldRecord = {};
   var endPoints = [];
   var scriptStatus = 'INPROGRESS'; //netsumo usage only
   var nlobjContext = context();
@@ -121,6 +122,7 @@ exports.getDefaultContext = function(opts) {
     for(var i = 0; i < recordsArray.length; i++) {
       var storedRecord = recordsArray[i];
       if(storedRecord.getId() == record.getId()) {
+        oldRecord = storedRecord.copy();
         recordsArray[i] = record;
         updatedExistingRecord = true;
         break;
@@ -148,7 +150,7 @@ exports.getDefaultContext = function(opts) {
     for(var i = 0; i < recordsArray.length; i++) {
       var record = recordsArray[i];
       if(record.getRecordType() == type && record.getId() == id) {
-        return record;
+        return record.copy();
       }
     }
     throw new Error('NETSIM ERROR: Couldnt find any record matching id:'+id+' with type: '+type);
@@ -215,6 +217,11 @@ exports.getDefaultContext = function(opts) {
 
     return searchResults;
   };
+
+  var nlapiCopyRecord = function(type, id) {
+    var record = nlapiLoadRecord(type, id);
+    return record.copy();
+  }
 
   var nlapiGetFieldValue = function(field) {
     return currentRecord.getFieldValue(field);
@@ -371,6 +378,10 @@ exports.getDefaultContext = function(opts) {
     return scriptStatus;
   }
 
+var nlapiGetOldRecord = function() {
+  return oldRecord;
+}
+
   return {
     nlapiLogExecution : nlapiLogExecution,
     nlapiCreateError : nlapiCreateError,
@@ -402,6 +413,7 @@ exports.getDefaultContext = function(opts) {
     nlapiYieldScript: nlapiYieldScript,
     getScriptStatus: getScriptStatus,
     nlapiGetContext: nlapiGetContext,
+    nlapiGetOldRecord : nlapiGetOldRecord,
   };
 
 };

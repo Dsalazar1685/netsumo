@@ -1,10 +1,7 @@
 var chai = require('chai');
-var should = chai.should();
 var expect = chai.expect;
-var netsumo = require('netsumo');
-var nsLoader = netsumo.nsLoader;
-var nsContext = netsumo.nsContext;
-var nlobjRecord = netsumo.nlobjRecord;
+var nsContext = require('../modules/SS1/nsContext.js');
+var nlobjRecord = require('../modules/SS1/nlobjRecord.js');
 
 describe('Netsumo api usage additions', function() {
   it('Decreases usage units according to the nlapi function usage requirements', function() {
