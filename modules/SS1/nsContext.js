@@ -306,6 +306,24 @@ exports.getDefaultContext = function(opts) {
     return null;
   };
 
+  var nlapiSubmitField = function(type, id, fields, values) {
+    nlobjContext.decreaseUnits(10);
+    for (var i = 0 ; i < recordsArray.length ; i ++) {
+      var record = recordsArray[i];
+      if (record.getType() === type && record.getId() === id) {
+        if (Array.isArray(fields) && Array.isArray(values)) {
+          fields.forEach(function(field, index) {
+            record.setFieldValue(field, values[index]);
+          })
+          return;
+        } else {
+          record.setFieldValue(field, value);
+          return;
+        }
+      }
+    }
+  }
+
   var nlapiAddMonths = function(date, months){
     return date.setMonth(date.getMonth() + months);
   };
