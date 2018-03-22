@@ -293,6 +293,7 @@ exports.getDefaultContext = function(opts) {
   };
 
    var nlapiLookupField = function(type, id, fields, text){
+    nlobjContext.decreaseUnits(10);
     var record = nlapiLoadRecord(type,id);
     if(typeof fields == 'string'){
       return record.getFieldValue(fields);
@@ -305,6 +306,7 @@ exports.getDefaultContext = function(opts) {
     }
     return null;
   };
+
 
   var nlapiSubmitField = function(type, id, fields, values) {
     nlobjContext.decreaseUnits(10);
