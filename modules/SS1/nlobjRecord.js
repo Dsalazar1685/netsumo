@@ -203,6 +203,7 @@ var nlobjRecord = function (recordtype, internalid) {
   return {
     setFieldValue : setFieldValue,
     getFieldValue : getFieldValue,
+    getFieldText : getFieldText,
     getLineItemCount : getLineItemCount,
     setLineItemValue : setLineItemValue,
     getLineItemValue : getLineItemValue,
