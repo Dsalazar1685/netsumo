@@ -8,73 +8,78 @@ var nlobjRecord = function (recordtype, internalid) {
     internalid = parseInt((Math.random() * 100), 10)
   }
 
-  var id = internalid;
-  var type = recordtype;
-  var fields = [];
-  var fieldValues = {};
-  var currentLineItems =  {
+  var record = {};
+  record.id = internalid;
+  record.type = recordtype;
+  record.fields = [];
+  record.fieldValues = {};
+  record.currentLineItems =  {
     'item': {},
     'addressbook': {},
     'contactroles': {},
   };
-  var lineItemOptions = {
+  record.lineItemOptions = {
     'item' : [],
     'addressbook' : [],
     'contactroles' : [],
   }
 
+  record.fieldValues.internalid = internalid;
 
-  var setFieldValue = function(name, value) {
-    fieldValues[name] = value
+  return record;
+}
+
+
+  nlobjRecord.prototype.setFieldValue = function(name, value) {
+    this.fieldValues[name] = value
   }
 
-  setFieldValue('internalid', id)
-
-  var getFieldValue = function(name) {
-    if(typeof fieldValues[name] !== 'undefined') {
-      return fieldValues[name]
+  nlobjRecord.prototype.getFieldValue = function(name) {
+    if(typeof this.fieldValues[name] !== 'undefined') {
+      return this.fieldValues[name]
     }
 
     return undefined;
   }
 
-  var getFieldText = function(name) {
+  nlobjRecord.prototype.getFieldText = function(name) {
     //in Netsuite, this translates the internal id of a text value into the text it represents.  We're simplifying it here.
-    return fieldValues[name];
+    return this.fieldValues[name];
   }
 
-  var getLineItemCount = function(group) {
-    var items = lineItemOptions[group];
+  nlobjRecord.prototype.getLineItemCount = function(group) {
+    var items = this.lineItemOptions[group];
     if (items) {
       return items.length;
     }
     return 0;
   }
 
-  var setLineItemValue = function(group,name,line,value) {
-    var items = lineItemOptions[group];
+  nlobjRecord.prototype.setLineItemValue = function(group,name,line,value) {
+    var items = this.lineItemOptions[group];
     if (items) {
       if(!items[line - 1]) {
         items[line - 1] = {};
       }
       items[line-1][name] = value;
     } else {
-      lineItemOptions[group] = [];
-      items = lineItemOptions[group];
+      this.lineItemOptions[group] = [];
+      items = this.lineItemOptions[group];
       items[line - 1] = {};
       items[line-1][name] = value;
     }
   }
 
-  var getLineItemValue = function(group,name,line) {
-    var items = lineItemOptions[group];
+  nlobjRecord.prototype.getLineItemValue = function(group,name,line) {
+    var items = this.lineItemOptions[group];
     if (items) {
       return items[line - 1][name]
     }
     return undefined;
   }
 
-  var selectNewLineItem = function(group) {
+  nlobjRecord.prototype.selectNewLineItem = function(group) {
+    var currentLineItems = this.currentLineItems;
     if (group === 'addressbook') {
       currentLineItems[group] = {}
       currentLineItems[group]['id'] = id+'_'+lineItems.length;
@@ -87,53 +92,53 @@ var nlobjRecord = function (recordtype, internalid) {
     }
   }
 
-  var createCurrentLineItemSubrecord = function(sublist,fldname) {
+  nlobjRecord.prototype.createCurrentLineItemSubrecord = function(sublist,fldname) {
     var subRecord = new nlobjSubRecord(fldname);
-    currentLineItems[sublist][fldname].push(subRecord);
+    this.currentLineItems[sublist][fldname].push(subRecord);
     return subRecord;
   }
 
-  var selectLineItem = function(group, line) {
-    var items = lineItemOptions[group];
+  nlobjRecord.prototype.selectLineItem = function(group, line) {
+    var items = this.lineItemOptions[group];
     if (items) {
-      currentLineItems[group] = items[line - 1];
+      this.currentLineItems[group] = items[line - 1];
     } else {
       throw new Error('NETSIM ERROR: Group ' + group + ' has not been created.');
     }
   }
 
-  var viewCurrentLineItemSubrecord = function(sublist,fldname) {
-    return currentLineItems[sublist][fldname][0]
+  nlobjRecord.prototype.viewCurrentLineItemSubrecord = function(sublist,fldname) {
+    return this.currentLineItems[sublist][fldname][0]
   }
 
-  var setCurrentLineItemValue = function(group,name,value) {
-    currentLineItems[group][name] = value
+  nlobjRecord.prototype.setCurrentLineItemValue = function(group,name,value) {
+    this.currentLineItems[group][name] = value
   }
 
-  var commitLineItem = function(group,ignoreRecalc) {
-    var items = lineItemOptions[group];
-    var currentItem = currentLineItems[group];
+  nlobjRecord.prototype.commitLineItem = function(group,ignoreRecalc) {
+    var items = this.lineItemOptions[group];
+    var currentItem = this.currentLineItems[group];
     if (items && currentItem) {
-      items.push(currentLineItems[group]);
+      items.push(currentItem);
     } else if (currentItem) {
       items = [];
       items.push(currentItem);
-      lineItemOptions[group] = items;
+      this.lineItemOptions[group] = items;
     }
   }
 
-  var getRecordType = function() {
-    return type
+  nlobjRecord.prototype.getRecordType = function() {
+    return this.type
   }
 
-  var getId = function() {
-    return id
+  nlobjRecord.prototype.getId = function() {
+    return this.id
   }
 
-  var getField = function(fldnam) {
+  nlobjRecord.prototype.getField = function(fldnam) {
     for(var i = 0; i < fields.length; i++) {
-      var field = fields[i]
-      if(field.getName() == fldnam) {
+      var field = this.fields[i]
+      if(field.getName() === fldnam) {
         return field;
       }
     }
@@ -141,13 +146,13 @@ var nlobjRecord = function (recordtype, internalid) {
 
   //This funtion is for netsim use only, do not use as part of a suitescript
   //as it is not part of the netsuite api.
-  var addField = function(name,type,label,source,group) {
-    fields.push(new nlobjField(name));
+  nlobjRecord.prototype.addField = function(name,type,label,source,group) {
+    this.fields.push(new nlobjField(name));
   }
 
   //This funtion is for netsim use only, do not use as part of a suitescript
   //as it is not part of the netsuite api.
-  var transform = function(transformType, newRecordId) {
+  nlobjRecord.prototype.transform = function(transformType, newRecordId) {
     var clonedLineItems = clone(lineItemOptions)
     var clonedRecord = nlobjRecord(transformType, newRecordId)
 
@@ -170,62 +175,30 @@ var nlobjRecord = function (recordtype, internalid) {
     return clonedRecord
   }
 
-  var setAllFieldValues = function(values) {
-    fieldValues = Object.assign({}, values);
-  }
+  // var setAllFieldValues = function(values) {
+  //   fieldValues = Object.assign({}, values);
+  // }
+  //
+  // var setAllFields = function(newFields) {
+  //   fields = fields.slice();
+  // }
+  //
+  // var setAllCurrentLineItems = function(lineItems) {
+  //   currentLineItems = Object.assign({}, lineItems);
+  // }
+  //
+  // var setAllLineItemOptions = function(options) {
+  //   lineItemOptions = Object.assign({}, options);
+  // }
+  //
+  // var setId = function(newId) {
+  //   id = newId;
+  // }
 
-  var setAllFields = function(newFields) {
-    fields = fields.slice();
+  nlobjRecord.prototype.copy = function() {
+    var newRecord = Object.assign({}, this);
+    newRecord.prototype = nlobjRecord.prototype;
+    return newRecord;
   }
-
-  var setAllCurrentLineItems = function(lineItems) {
-    currentLineItems = Object.assign({}, lineItems);
-  }
-
-  var setAllLineItemOptions = function(options) {
-    lineItemOptions = Object.assign({}, options);
-  }
-
-  var setId = function(newId) {
-    id = newId;
-  }
-
-  var copy = function() {
-    var record = nlobjRecord(type);
-    record.setAllFieldValues(fieldValues);
-    record.setAllFields(fields);
-    record.setAllCurrentLineItems(currentLineItems);
-    record.setAllLineItemOptions(lineItemOptions);
-    record.setId(id);
-    return record;
-  }
-
-  return {
-    setFieldValue : setFieldValue,
-    getFieldValue : getFieldValue,
-    getFieldText : getFieldText,
-    getLineItemCount : getLineItemCount,
-    setLineItemValue : setLineItemValue,
-    getLineItemValue : getLineItemValue,
-    selectNewLineItem : selectNewLineItem,
-    setCurrentLineItemValue : setCurrentLineItemValue,
-    commitLineItem : commitLineItem,
-    getRecordType : getRecordType,
-    getId : getId,
-    transform : transform,
-    createCurrentLineItemSubrecord:createCurrentLineItemSubrecord,
-    getField:getField,
-    addField:addField,
-    selectLineItem:selectLineItem,
-    viewCurrentLineItemSubrecord:viewCurrentLineItemSubrecord,
-    setAllFieldValues : setAllFieldValues,
-    setAllFields : setAllFields,
-    setAllCurrentLineItems : setAllCurrentLineItems,
-    setAllLineItemOptions : setAllLineItemOptions,
-    setId : setId,
-    copy: copy,
-  }
-
-}
 
 module.exports = nlobjRecord
