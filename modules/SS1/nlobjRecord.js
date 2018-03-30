@@ -153,7 +153,7 @@ var nlobjRecord = function (recordtype, internalid) {
   //This funtion is for netsim use only, do not use as part of a suitescript
   //as it is not part of the netsuite api.
   nlobjRecord.prototype.transform = function(transformType, newRecordId) {
-    var clonedLineItems = clone(lineItemOptions)
+    var clonedLineItems = clone(this.lineItemOptions)
     var clonedRecord = nlobjRecord(transformType, newRecordId)
 
     var clonedItemKeys = Object.keys(clonedLineItems);
@@ -196,8 +196,8 @@ var nlobjRecord = function (recordtype, internalid) {
   // }
 
   nlobjRecord.prototype.copy = function() {
-    var newRecord = Object.assign({}, this);
-    newRecord.prototype = nlobjRecord.prototype;
+    var newRecord = Object.create(nlobjRecord.prototype);
+    Object.assign(newRecord, this);
     return newRecord;
   }
 
