@@ -8,7 +8,7 @@ var nlobjRecord = function (recordtype, internalid) {
     internalid = parseInt((Math.random() * 100), 10)
   }
 
-  var record = {};
+  var record = Object.create(nlobjRecord.prototype);
   record.id = internalid;
   record.type = recordtype;
   record.fields = [];
@@ -196,7 +196,7 @@ var nlobjRecord = function (recordtype, internalid) {
   // }
 
   nlobjRecord.prototype.copy = function() {
-    var newRecord = Object.create(nlobjRecord.prototype);
+    var newRecord = nlobjRecord(this.type, this.id);
     Object.assign(newRecord, this);
     return newRecord;
   }

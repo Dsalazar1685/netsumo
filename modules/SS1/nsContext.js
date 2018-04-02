@@ -8,39 +8,38 @@ var context = require('./nlobjContext.js');
 var nodemailer = require('nodemailer');
 var pickupTransport = require('nodemailer-pickup-transport');
 
-
-var executionLogLevelMappings ={
-  debug: 1,
-  audit: 2,
-  error: 3,
-  emergency: 4,
-  system: 5
-}
-
-
-exports.getDefaultContext = function(opts) {
+var getDefaultContext = function(opts) {
 
   if(!opts) {
     opts = {};
   }
+  var newContext = Object.create(getDefaultContext.prototype);
+  newContext.defaultContextOptions = opts;
+  newContext.executionLogLevelMappings ={
+    debug: 1,
+    audit: 2,
+    error: 3,
+    emergency: 4,
+    system: 5
+  }
+  newContext.recordsArray = [];
+  newContext.recordId = 0;
+  newContext.recordType = '';
+  newContext.currentRecord = null;
+  newContext.oldRecord = {};
+  newContext.endPoints = [];
+  newContext.scriptStatus = 'INPROGRESS'; //netsumo usage only
+  newContext.nlobjContext = context();
+  return newContext;
+}
 
-  var defaultContextOptions = opts;
-  var recordsArray = [];
-  var recordId = 0;
-  var recordType = '';
-  var currentRecord = null;
-  var oldRecord = {};
-  var endPoints = [];
-  var scriptStatus = 'INPROGRESS'; //netsumo usage only
-  var nlobjContext = context();
-
-  var nlapiScheduleScript = function(scriptId, deployId, params) {
-    nlobjContext.decreaseUnits(20);
-    scriptStatus = 'QUEUED';
-    return 'QUEUED';
+  getDefaultContext.prototype.nlapiScheduleScript = function(scriptId, deployId, params) {
+    this.nlobjContext.decreaseUnits(20);
+    this.scriptStatus = 'QUEUED';
+    return this.scriptStatus;
   }
 
-  var nlapiYieldScript = function() {
+  getDefaultContext.prototype.nlapiYieldScript = function() {
     return {
       status: 'RESUME', //yield status - RESUME or FAILURE
       reason: 'SS_NLAPIYIELDSCRIPT', //Reason for yielding
@@ -49,43 +48,43 @@ exports.getDefaultContext = function(opts) {
     }
   }
 
-   var nlapiLogExecution = function(type,title,details) {
-    if(defaultContextOptions.suppressNlapiLogOutput) {
+   getDefaultContext.prototype.nlapiLogExecution = function(type,title,details) {
+    if(this.defaultContextOptions.suppressNlapiLogOutput) {
       return
     }
-    var level = executionLogLevelMappings[type.toLowerCase()];
+    var level = this.executionLogLevelMappings[type.toLowerCase()];
     var minLevel = 0;
-    if(defaultContextOptions.NlapiLogOutLevel){
-      minLevel = executionLogLevelMappings[defaultContextOptions.NlapiLogOutLevel.toLowerCase()]
+    if(this.defaultContextOptions.NlapiLogOutLevel){
+      minLevel = this.executionLogLevelMappings[this.defaultContextOptions.NlapiLogOutLevel.toLowerCase()]
     }
     if(level >= minLevel){
       console.log("TYPE: "+type+" | TITLE: "+title+" | DETAILS: "+details)
     }
   }
 
-  var nlapiCreateError = function(code,details,suppressNotification) {
+  getDefaultContext.prototype.nlapiCreateError = function(code,details,suppressNotification) {
     return new Error("NLAPI ERROR CODE: "+code+" | DETAILS: "+details+" | SUPPRESS NOTIFICATION: "+suppressNotification);
   };
 
-  var nlapiGetRecordId = function() {
-    return recordId;
+  getDefaultContext.prototype.nlapiGetRecordId = function() {
+    return this.recordId;
   };
 
-  var nlapiSetRecordId = function(id) {
-    recordId = id;
+  getDefaultContext.prototype.nlapiSetRecordId = function(id) {
+    this.recordId = id;
   };
 
-  var nlapiGetRecordType = function() {
-    return recordType;
+  getDefaultContext.prototype.nlapiGetRecordType = function() {
+    this.recordType;
   };
 
-  var nlapiSetRecordType = function(type) {
-    recordType = type;
+  getDefaultContext.prototype.nlapiSetRecordType = function(type) {
+    this.recordType = type;
   };
 
-  var nlapiCreateRecord = function(type,initializeValues) {
+  getDefaultContext.prototype.nlapiCreateRecord = function(type,initializeValues) {
     //if standard transaction
-    nlobjContext.decreaseUnits(10);
+    this.nlobjContext.decreaseUnits(10);
     //else if standard non-transaction
     //nlobjContext.decreaseUnits(5);
     //else if custom record;
@@ -94,16 +93,16 @@ exports.getDefaultContext = function(opts) {
     return record;
   };
 
-  var nlapiDeleteRecord = function(type,id) {
+  getDefaultContext.prototype.nlapiDeleteRecord = function(type,id) {
     //if standard transaction
-    nlobjContext.decreaseUnits(20);
+    this.nlobjContext.decreaseUnits(20);
     //else if standard non-transaction
     //nlobjContext.decreaseUnits(10);
     //else if custom record;
     //nlobjContext.decreaseUnits(4);
     for(var i = 0; i < recordsArray.length; i++) {
-      var record = recordsArray[i];
-      if(record.getRecordType() == type && record.getId() == id) {
+      var record = this.recordsArray[i];
+      if(record.getRecordType() === type && record.getId() === id) {
         recordsArray.splice(i, 1);
         return;
       }
@@ -111,26 +110,30 @@ exports.getDefaultContext = function(opts) {
     throw new Error('NETSIM ERROR: Couldnt find any record matching id:'+id+' with type: '+type);
   };
 
-  var nlapiSubmitRecord = function(record,doSourcing,ignoreMandatoryFields) {
+  getDefaultContext.prototype.nlapiSubmitRecord = function(record,doSourcing,ignoreMandatoryFields) {
     //if standard transaction
-    nlobjContext.decreaseUnits(20);
+    console.log('START:', this.oldRecord, record.getFieldValue('name'))
+    this.nlobjContext.decreaseUnits(20);
     //else if standard non-transaction
     //nlobjContext.decreaseUnits(10);
     //else if custom record;
     //nlobjContext.decreaseUnits(4);
     var updatedExistingRecord = false;
-    for(var i = 0; i < recordsArray.length; i++) {
-      var storedRecord = recordsArray[i];
-      if(storedRecord.getId() == record.getId()) {
-        oldRecord = storedRecord.copy();
-        recordsArray[i] = record;
+    var records = this.recordsArray;
+    for(var i = 0; i < records.length; i++) {
+      var storedRecord = records[i];
+      if(storedRecord.getId() === record.getId()) {
+        console.log('VALUES:', storedRecord.getFieldValue('name'), record.getFieldValue('name'))
+        this.oldRecord = storedRecord.copy();
+        records[i] = record;
         updatedExistingRecord = true;
         break;
       }
     }
 
     if(!updatedExistingRecord) {
-      recordsArray.push(record);
+      this.oldRecord = record.copy();
+      records.push(record);
     }
 
     currentRecord = record;
@@ -140,43 +143,44 @@ exports.getDefaultContext = function(opts) {
     return recordId;
   };
 
-  var nlapiLoadRecord = function(type,id,initializeValues) {
+  getDefaultContext.prototype.nlapiLoadRecord = function(type,id,initializeValues) {
     //if standard transaction
-    nlobjContext.decreaseUnits(10);
+    this.nlobjContext.decreaseUnits(10);
     //else if standard non-transaction
     //nlobjContext.decreaseUnits(5);
     //else if custom record;
     //nlobjContext.decreaseUnits(2);
-    for(var i = 0; i < recordsArray.length; i++) {
-      var record = recordsArray[i];
-      if(record.getRecordType() == type && record.getId() == id) {
+    var records = this.recordsArray;
+    for(var i = 0; i < records.length; i++) {
+      var record = records[i];
+      if(record.getRecordType() === type && record.getId() === id) {
         return record.copy();
       }
     }
     throw new Error('NETSIM ERROR: Couldnt find any record matching id:'+id+' with type: '+type);
   };
 
-  var nlapiTransformRecord = function(type,id,transformType,transformValues) {
+  getDefaultContext.prototype.nlapiTransformRecord = function(type,id,transformType,transformValues) {
     //if standard transaction
-    nlobjContext.decreaseUnits(10);
+    this.nlobjContext.decreaseUnits(10);
     //else if standard non-transaction
     //nlobjContext.decreaseUnits(5);
     //else if custom record;
     //nlobjContext.decreaseUnits(2);
 
-    var record = nlapiLoadRecord(type,id);
-    var transformedRecord = record.transform(transformType, getNextAvailableRecordId());
+    var record = this.nlapiLoadRecord(type,id);
+    var transformedRecord = record.transform(transformType, this.getNextAvailableRecordId());
 
     return transformedRecord;
   };
 
-  var nlapiSearchRecord = function(type,id,filters,columns) {
+  getDefaultContext.prototype.nlapiSearchRecord = function(type,id,filters,columns) {
 
     var matchingResults = [];
 
     if(!id || id == null || id == '' || id == undefined) {
 
-      recordsArray.forEach(function(record){
+      this.recordsArray.forEach(function(record){
 
         var matchingRecord = record.getRecordType() === type;
 
@@ -218,16 +222,16 @@ exports.getDefaultContext = function(opts) {
     return searchResults;
   };
 
-  var nlapiCopyRecord = function(type, id) {
-    var record = nlapiLoadRecord(type, id);
+  getDefaultContext.prototype.nlapiCopyRecord = function(type, id) {
+    var record = this.nlapiLoadRecord(type, id);
     return record.copy();
   }
 
-  var nlapiGetFieldValue = function(field) {
-    return currentRecord.getFieldValue(field);
+  getDefaultContext.prototype.nlapiGetFieldValue = function(field) {
+    return this.currentRecord.getFieldValue(field);
   };
 
-  var nlapiSendEmail = function (author,recipient,subject,body,cc,bcc,records,attachments,notifySenderOnBounce,internalOnly,replyTo) {
+  getDefaultContext.prototype.nlapiSendEmail = function (author,recipient,subject,body,cc,bcc,records,attachments,notifySenderOnBounce,internalOnly,replyTo) {
 
     var mailOptions = {
         from: author,
@@ -236,7 +240,7 @@ exports.getDefaultContext = function(opts) {
         html: body
     };
 
-    if(typeof defaultContextOptions.emailPath == 'undefined' || defaultContextOptions.emailPath == null) {
+    if(typeof defaultContextOptions.emailPath === 'undefined' || defaultContextOptions.emailPath === null) {
       console.log(mailOptions);
     } else {
       // create reusable transporter object using the default SMTP transport
@@ -253,19 +257,19 @@ exports.getDefaultContext = function(opts) {
     }
   };
 
-  var nlapiResolveURL = function(type,identifier,id,displayMode) {
+  getDefaultContext.prototype.nlapiResolveURL = function(type,identifier,id,displayMode) {
 
-    if(type == 'record' && identifier == 'returnauthorization') {
+    if(type === 'record' && identifier === 'returnauthorization') {
       return "https://system.na1.netsuite.com/app/accounting/transactions/rtnauth.nl?id="+id+"&whence=";
     }
 
   };
 
-  var getNextAvailableRecordId = function() {
+  getDefaultContext.prototype.getNextAvailableRecordId = function() {
     var maxRecordId = 0;
-
-    for(var i = 0; i < recordsArray.length; i++) {
-      var record = recordsArray[i];
+    var records = this.recordsArray;
+    for(var i = 0; i < records.length; i++) {
+      var record = records[i];
 
       if(record.getId() > maxRecordId) {
         maxRecordId = record.getId();
@@ -276,25 +280,25 @@ exports.getDefaultContext = function(opts) {
 
   };
 
-  var setNlobjContext = function(nlobjContext) {
+  getDefaultContext.prototype.setNlobjContext = function(nlobjContext) {
     nlobjContext = this.nlobjContext;
   };
 
-  var nlapiGetContext = function() {
-    return nlobjContext;
+  getDefaultContext.prototype.nlapiGetContext = function() {
+    return this.nlobjContext;
   };
 
-  var nlapiCreateError = function(code, details, suppressNotification) {
+  getDefaultContext.prototype.nlapiCreateError = function(code, details, suppressNotification) {
     return new nlobjError(code, details);
   };
 
-  var getAllRecords = function() {
-    return recordsArray;
+  getDefaultContext.prototype.getAllRecords = function() {
+    return this.recordsArray;
   };
 
-   var nlapiLookupField = function(type, id, fields, text){
-    nlobjContext.decreaseUnits(10);
-    var record = nlapiLoadRecord(type,id);
+   getDefaultContext.prototype.nlapiLookupField = function(type, id, fields, text){
+    this.nlobjContext.decreaseUnits(10);
+    var record = this.nlapiLoadRecord(type,id);
     if(typeof fields == 'string'){
       return record.getFieldValue(fields);
     }else if(Array.isArray(fields)){
@@ -308,10 +312,11 @@ exports.getDefaultContext = function(opts) {
   };
 
 
-  var nlapiSubmitField = function(type, id, fields, values) {
-    nlobjContext.decreaseUnits(10);
-    for (var i = 0 ; i < recordsArray.length ; i ++) {
-      var record = recordsArray[i];
+  getDefaultContext.prototype.nlapiSubmitField = function(type, id, fields, values) {
+    this.nlobjContext.decreaseUnits(10);
+    var records = this.recordsArray;
+    for (var i = 0 ; i < records.length ; i ++) {
+      var record = records[i];
       if (record.getType() === type && record.getId() === id) {
         if (Array.isArray(fields) && Array.isArray(values)) {
           fields.forEach(function(field, index) {
@@ -326,11 +331,11 @@ exports.getDefaultContext = function(opts) {
     }
   }
 
-  var nlapiAddMonths = function(date, months){
+  getDefaultContext.prototype.nlapiAddMonths = function(date, months){
     return date.setMonth(date.getMonth() + months);
   };
 
-  nlapiStringToDate = function(str, format){
+  getDefaultContext.prototype.nlapiStringToDate = function(str, format){
     var monthDayYearArray = [];
     if(str.indexOf('/') > -1){
       monthDayYearArray = str.split('/');
@@ -340,7 +345,7 @@ exports.getDefaultContext = function(opts) {
     return new Date(monthDayYearArray[2], monthDayYearArray[1], monthDayYearArray[0]);
   };
 
-  nlapiDateToString = function(d, format){
+  getDefaultContext.prototype.nlapiDateToString = function(d, format){
     format = format.trim().toLowerCase();
     var hours = d.getHours();
     var ampm = (hours > 11 ? 'pm' : 'am' );
@@ -359,9 +364,11 @@ exports.getDefaultContext = function(opts) {
     }
     return '';
   };
-  var nlapiRequestURL = function(url, postdata, headers, callback, httpMethod){
+
+  getDefaultContext.prototype.nlapiRequestURL = function(url, postdata, headers, callback, httpMethod){
 
     var response;
+    var endPoints = this.endPoints;
     endPoints.forEach((endPoint, index) => {
       if(typeof endPoint.data == 'function'){
         endPoint.data = endPoint.data(url, postdata, headers, callback, httpMethod);
@@ -382,11 +389,11 @@ exports.getDefaultContext = function(opts) {
     return response;
   }
 
-  var nlapiEscapeXML = function(text){
+  getDefaultContext.prototype.nlapiEscapeXML = function(text){
       return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&apos;').replace(/"/g, ' &quot;');
     }
 
-  var addEndpoint = function(endPoint){
+  getDefaultContext.prototype.addEndpoint = function(endPoint){
     if(!endPoint.url && !endPoint.regex){
       throw new Error('Either url or regex are required.');
     }
@@ -394,46 +401,12 @@ exports.getDefaultContext = function(opts) {
   }
 
  //netsumo usage only:
-  var getScriptStatus = function() {
-    return scriptStatus;
+  getDefaultContext.prototype.getScriptStatus = function() {
+    return this.scriptStatus;
   }
 
-var nlapiGetOldRecord = function() {
-  return oldRecord;
+getDefaultContext.prototype.nlapiGetOldRecord = function() {
+  return this.oldRecord;
 }
 
-  return {
-    nlapiLogExecution : nlapiLogExecution,
-    nlapiCreateError : nlapiCreateError,
-    nlapiGetRecordId : nlapiGetRecordId,
-    nlapiSetRecordId : nlapiSetRecordId,
-    nlapiGetRecordType : nlapiGetRecordType,
-    nlapiSetRecordType : nlapiSetRecordType,
-    nlapiSubmitRecord : nlapiSubmitRecord,
-    nlapiGetFieldValue : nlapiGetFieldValue,
-    nlapiLoadRecord : nlapiLoadRecord,
-    nlapiTransformRecord : nlapiTransformRecord,
-    nlobjSearchFilter : nlobjSearchFilter,
-    nlobjSearchColumn : nlobjSearchColumn,
-    nlapiSearchRecord : nlapiSearchRecord,
-    nlapiSendEmail : nlapiSendEmail,
-    nlapiResolveURL : nlapiResolveURL,
-    nlapiDeleteRecord : nlapiDeleteRecord,
-    nlapiCreateRecord : nlapiCreateRecord,
-    getAllRecords : getAllRecords,
-    nlapiLookupField: nlapiLookupField,
-    nlapiAddMonths: nlapiAddMonths,
-    nlapiStringToDate: nlapiStringToDate,
-    nlapiDateToString: nlapiDateToString,
-    nlapiRequestURL: nlapiRequestURL,
-    nlapiEscapeXML: nlapiEscapeXML,
-    addEndpoint: addEndpoint,
-    nlobjError: nlobjError,
-    nlapiScheduleScript: nlapiScheduleScript,
-    nlapiYieldScript: nlapiYieldScript,
-    getScriptStatus: getScriptStatus,
-    nlapiGetContext: nlapiGetContext,
-    nlapiGetOldRecord : nlapiGetOldRecord,
-  };
-
-};
+exports.getDefaultContext = getDefaultContext;
