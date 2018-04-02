@@ -9,13 +9,9 @@ describe('nsContext getOldRecord functionality', function() {
     expect(context.nlapiGetOldRecord()).to.deep.equal({});
     var customer = nlobjRecord('customer', 1);
     customer.setFieldValue('name', 'Doog');
-    context.nlapiSubmitRecord(customer);
+    context.setOldRecord(customer);
 
-    var customerTwo = nlobjRecord('customer', 2);
-    customerTwo.setFieldValue('name', 'Frog');
-    context.nlapiSubmitRecord(customerTwo);
-
-    var updatedCustomer = context.nlapiLoadRecord('customer', 1);
+    var updatedCustomer = nlobjRecord('customer', 1);
     updatedCustomer.setFieldValue('name', 'Doug');
     context.nlapiSubmitRecord(updatedCustomer);
     expect(context.nlapiGetOldRecord().getFieldValue('name')).to.equal('Doog');
