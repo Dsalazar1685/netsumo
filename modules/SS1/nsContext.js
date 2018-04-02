@@ -29,7 +29,7 @@ var getDefaultContext = function(opts) {
   newContext.oldRecord = {};
   newContext.endPoints = [];
   newContext.scriptStatus = 'INPROGRESS'; //netsumo usage only
-  newContext.nlobjContext = context();
+  newContext.nlobjContext = context.nlobjContext();
   return newContext;
 }
 
@@ -112,7 +112,6 @@ getDefaultContext.prototype.nlapiDeleteRecord = function(type,id) {
 
 getDefaultContext.prototype.nlapiSubmitRecord = function(record,doSourcing,ignoreMandatoryFields) {
   //if standard transaction
-  console.log('START:', this.oldRecord, record.getFieldValue('name'))
   this.nlobjContext.decreaseUnits(20);
   //else if standard non-transaction
   //nlobjContext.decreaseUnits(10);
@@ -124,7 +123,6 @@ getDefaultContext.prototype.nlapiSubmitRecord = function(record,doSourcing,ignor
     var storedRecord = records[i];
     if(storedRecord.getId() === record.getId()) {
       console.log('VALUES:', storedRecord.getFieldValue('name'), record.getFieldValue('name'))
-      this.oldRecord = storedRecord.copy();
       records[i] = record;
       updatedExistingRecord = true;
       break;
@@ -132,7 +130,6 @@ getDefaultContext.prototype.nlapiSubmitRecord = function(record,doSourcing,ignor
   }
 
   if(!updatedExistingRecord) {
-    this.oldRecord = record.copy();
     records.push(record);
   }
 
@@ -409,6 +406,10 @@ getDefaultContext.prototype.getScriptStatus = function() {
 
 getDefaultContext.prototype.nlapiGetOldRecord = function() {
 return this.oldRecord;
+}
+
+getDefaultContext.prototype.setOldRecord = function(record) {
+  this.oldRecord = record;
 }
 
 exports.getDefaultContext = getDefaultContext;

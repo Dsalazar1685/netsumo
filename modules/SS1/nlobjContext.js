@@ -1,4 +1,4 @@
-nlobjContext.prototype.clone = require('clone')
+var clone = require('clone')
 //comment comment
 var nlobjContext = function () {
   var context = Object.create(nlobjContext.prototype);
@@ -8,6 +8,8 @@ var nlobjContext = function () {
   context.usage = 1000; //needs to be 10000 for scheduled script
   return context;
 }
+
+nlobjContext.prototype.clone = clone;
 
 nlobjContext.prototype.getName = function() {
   return this.name;
