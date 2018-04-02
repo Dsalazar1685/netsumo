@@ -1,33 +1,26 @@
 var nlobjSearchColumn = function (name, join, summary) {
+  var column = Object.create(nlobjSearchColumn.prototype);
+  column.name = name
+  column.join = join
+  column.summary = summary
+  column.sort = false;
+  return column;
+}
 
-  var name = name
-  var join = join
-  var summary = summary
-  var sort = false;
+nlobjSearchColumn.prototype.getName = function() {
+  return this.name;
+}
 
-  var getName = function() {
-    return name;
-  }
+nlobjSearchColumn.prototype.getJoin = function() {
+  return this.join;
+}
 
-  var getJoin = function() {
-    return join
-  }
+nlobjSearchColumn.prototype.getSummary = function() {
+  return this.summary;
+}
 
-  var getSummary = function() {
-    return summary
-  }
-
-  var setSort = function(order) {
-    sort = order;
-  }
-
-  return {
-    getName:getName,
-    getJoin:getJoin,
-    getSummary:getSummary,
-    setSort:setSort
-  }
-
+nlobjSearchColumn.prototype.setSort = function(order) {
+  this.sort = order;
 }
 
 module.exports = nlobjSearchColumn

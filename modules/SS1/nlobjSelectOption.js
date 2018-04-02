@@ -1,18 +1,16 @@
 var nlobjSelectOption = function (id, text) {
+  var option = Object.create(nlobjSelectOption.prototype);
+  option.id = id;
+  option.text = text;
+  return option;
+}
 
-  var getId = function() {
-    return id;
-  }
+nlobjSelectOption.prototype.getId = function() {
+    return this.id;
+}
 
-  var getText = function() {
-    return text;
-  }
-
-  return {
-    getId:getId,
-    getText:getText
-  }
-
+nlobjSelectOption.prototype.getText = function() {
+    return this.text;
 }
 
 module.exports = nlobjSelectOption

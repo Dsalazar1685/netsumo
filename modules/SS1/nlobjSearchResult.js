@@ -1,61 +1,50 @@
 var nlobjSearchResult = function () {
+  var searchResult = Object.create(nlobjSearchResult.prototype);
+  searchResult.id = ''
+  searchResult.recordType = ''
+  searchResult.values = {}
+  return searchResult;
+}
 
-  var id = ''
-  var recordType = ''
-  var values = {}
+nlobjSearchResult.prototype.getAllColumns = function() {
+  return Object.keys(this.values)
+}
 
-  var getAllColumns = function() {
-    return Object.keys(values)
+nlobjSearchResult.prototype.getId = function() {
+  return this.id
+}
+
+nlobjSearchResult.prototype.setId = function(identifier) {
+  this.id = identifier
+}
+
+nlobjSearchResult.prototype.getRecordType = function() {
+  return this.recordType
+}
+
+nlobjSearchResult.prototype.setRecordType = function(recType) {
+  this.recordType = recType
+}
+
+nlobjSearchResult.prototype.setValue = function(column, value) {
+  this.values[column] = value
+}
+
+nlobjSearchResult.prototype.getValue = function(column) {
+
+  if(column.getName != null || typeof column.getName != 'undefined') {
+    return this.values[column.getName()]
   }
 
-  var getId = function() {
-    return id
+  return this.values[column]
+}
+
+var getText = function(column, join) {
+  if(column.getName != null || typeof column.getName != 'undefined') {
+    return this.values[column.getName()]
   }
 
-  var setId = function(identifier) {
-    id = identifier
-  }
-
-  var getRecordType = function() {
-    return recordType
-  }
-
-  var setRecordType = function(recType) {
-    recordType = recType
-  }
-
-  var setValue = function(column, value) {
-    values[column] = value
-  }
-
-  var getValue = function(column) {
-
-    if(column.getName != null || typeof column.getName != 'undefined') {
-      return values[column.getName()]
-    }
-
-    return values[column]
-  }
-
-  var getText = function(column, join) {
-    if(column.getName != null || typeof column.getName != 'undefined') {
-      return values[column.getName()]
-    }
-
-    return values[column]
-  }
-
-  return {
-    getAllColumns:getAllColumns,
-    getId:getId,
-    setId:setId,
-    getRecordType:getRecordType,
-    setRecordType:setRecordType,
-    setValue:setValue,
-    getValue:getValue,
-    getText:getText
-  }
-
+  return this.values[column]
 }
 
 module.exports = nlobjSearchResult
