@@ -1,73 +1,64 @@
-var clone = require('clone')
+nlobjContext.prototype.clone = require('clone')
 //comment comment
-module.exports = function () {
+var nlobjContext = function () {
+  var context = Object.create(nlobjContext.prototype);
+  this.name = '';
+  this.executionContext = '';
+  this.user = undefined;
+  this.usage = 1000; //needs to be 10000 for scheduled script
+  return context;
+}
 
-  var name = '';
-  var executionContext = '';
-  var user = undefined;
-  var usage = 1000; //needs to be 10000 for scheduled scripts
-
-  var getName = function() {
-    return name;
+  nlobjContext.prototype.getName = function() {
+    return this.name;
   }
 
-  var getExecutionContext = function() {
-    return executionContext;
+  nlobjContext.prototype.getExecutionContext = function() {
+    return this.executionContext;
   }
 
   //netsumo only function for manually creating a script execution context
-  var setExecutionContext = function(newContext) {
-    executionContext = newContext;
+  nlobjContext.prototype.setExecutionContext = function(newContext) {
+    this.executionContext = newContext;
   }
 
-  var getUser = function() {
-    return user;
+  nlobjContext.prototype.getUser = function() {
+    return this.user;
   }
 
-  var setName = function(name) {
-    return name = this.name;
+  nlobjContext.prototype.setName = function(name) {
+    this.name = name;
+    return this.name;
   }
 
-  var setUser = function(user) {
-    return user = this.user;
+  nlobjContext.prototype.setUser = function(user) {
+    this.user = user;
+    return this.user;
   }
 
-  var getScriptId = function() {
+  nlobjContext.prototype.getScriptId = function() {
     return 1; //placeholder
   }
 
-  var getDeploymentId = function() {
+  nlobjContext.prototype.getDeploymentId = function() {
     return 1; //placeholder
   }
 
-  var getRemainingUsage = function() {
-    return usage;
+  nlobjContext.prototype.getRemainingUsage = function() {
+    return this.usage;
   }
 
-  var decreaseUnits = function(number) {
+  nlobjContext.prototype.decreaseUnits = function(number) {
     //Not available in Netsuite - this is used to mock the NS API usage behavior
-    if (usage - number < 0) {
+    if (this.usage - number < 0) {
       throw new Error('Usage limit exceeded error');
     }
-    usage = usage - number;
+    this.usage = this.usage - number;
   }
 
-  var resetUnits = function() {
+  nlobjContext.prototype.resetUnits = function(number) {
     //Not available in Netsuite - this is used to mock script rescheduling unit resets
-    usage = 1000;
+    this.usage = number || 1000;
   }
 
-  return {
-    getName : getName,
-    getUser : getUser,
-    setName : setName,
-    setUser : setUser,
-    getExecutionContext : getExecutionContext,
-    setExecutionContext : setExecutionContext,
-    getScriptId : getScriptId,
-    getDeploymentId : getDeploymentId,
-    getRemainingUsage : getRemainingUsage,
-    resetUnits: resetUnits,
-    decreaseUnits: decreaseUnits,
-  };
-}
+exports.nlobjContext = nlobjContext;
