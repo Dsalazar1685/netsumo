@@ -312,7 +312,7 @@ exports.getDefaultContext = function(opts) {
     nlobjContext.decreaseUnits(10);
     for (var i = 0 ; i < recordsArray.length ; i ++) {
       var record = recordsArray[i];
-      if (record.getType() === type && record.getId() === id) {
+      if (record.getRecordType() === type && record.getId() === id) {
         if (Array.isArray(fields) && Array.isArray(values)) {
           fields.forEach(function(field, index) {
             record.setFieldValue(field, values[index]);
@@ -434,6 +434,7 @@ var nlapiGetOldRecord = function() {
     getScriptStatus: getScriptStatus,
     nlapiGetContext: nlapiGetContext,
     nlapiGetOldRecord : nlapiGetOldRecord,
+    nlapiSubmitField : nlapiSubmitField,
   };
 
 };
