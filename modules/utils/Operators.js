@@ -17,7 +17,7 @@ var Operators = function(){
 
       return (valueParts[0] == todayParts[0])
     }
-    return record.getFieldValue(name) === value1;
+    return record.getFieldValue(name) == value1;
   }
 
   var isempty = function(record, name, join, value1, value2){
