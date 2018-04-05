@@ -79,7 +79,7 @@ var nlobjRecord = function (recordtype, internalid) {
   }
 
   var selectNewLineItem = function(group) {
-    if (group === 'addressbook') {
+    if (group == 'addressbook') {
       currentLineItems[group] = {}
       currentLineItems[group]['id'] = id+'_'+lineItems.length;
       currentLineItems[group]['line'] = lineItems.length;

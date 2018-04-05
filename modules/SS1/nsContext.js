@@ -177,7 +177,7 @@ exports.getDefaultContext = function(opts) {
 
       recordsArray.forEach(function(record){
 
-        var matchingRecord = record.getRecordType() === type;
+        var matchingRecord = record.getRecordType() == type;
 
         filters.forEach(function(filter){
 
@@ -311,7 +311,7 @@ exports.getDefaultContext = function(opts) {
     nlobjContext.decreaseUnits(10);
     for (var i = 0 ; i < recordsArray.length ; i ++) {
       var record = recordsArray[i];
-      if (record.getRecordType() === type && record.getId() === Number(id)) {
+      if (record.getRecordType() == type && record.getId() == id) {
         if (Array.isArray(fields) && Array.isArray(values)) {
           fields.forEach(function(field, index) {
             record.setFieldValue(field, values[index]);
