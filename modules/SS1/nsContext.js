@@ -311,14 +311,14 @@ exports.getDefaultContext = function(opts) {
     nlobjContext.decreaseUnits(10);
     for (var i = 0 ; i < recordsArray.length ; i ++) {
       var record = recordsArray[i];
-      if (record.getRecordType() === type && record.getId() === id) {
+      if (record.getRecordType() === type && record.getId() === Number(id)) {
         if (Array.isArray(fields) && Array.isArray(values)) {
           fields.forEach(function(field, index) {
             record.setFieldValue(field, values[index]);
           })
           return;
         } else {
-          record.setFieldValue(field, value);
+          record.setFieldValue(fields, values);
           return;
         }
       }

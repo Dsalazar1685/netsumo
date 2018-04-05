@@ -25,10 +25,14 @@ var nlobjRecord = function (recordtype, internalid) {
 
 
   var setFieldValue = function(name, value) {
+    if (typeof value != 'string') {
+      fieldValues[name] = JSON.stringify(value);
+      return;
+    }
     fieldValues[name] = value
   }
 
-  setFieldValue('internalid', id)
+  setFieldValue('internalid', id);
 
   var getFieldValue = function(name) {
     if(typeof fieldValues[name] !== 'undefined') {
@@ -127,7 +131,7 @@ var nlobjRecord = function (recordtype, internalid) {
   }
 
   var getId = function() {
-    return id
+    return Number(id);
   }
 
   var getField = function(fldnam) {
