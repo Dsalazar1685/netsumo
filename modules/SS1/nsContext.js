@@ -122,7 +122,6 @@ exports.getDefaultContext = function(opts) {
     for(var i = 0; i < recordsArray.length; i++) {
       var storedRecord = recordsArray[i];
       if(storedRecord.getId() == record.getId()) {
-        oldRecord = storedRecord.copy();
         recordsArray[i] = record;
         updatedExistingRecord = true;
         break;
@@ -398,6 +397,10 @@ exports.getDefaultContext = function(opts) {
     return scriptStatus;
   }
 
+var setOldRecord = function(record) {
+  oldRecord = record;
+}
+
 var nlapiGetOldRecord = function() {
   return oldRecord;
 }
@@ -435,6 +438,7 @@ var nlapiGetOldRecord = function() {
     nlapiGetContext: nlapiGetContext,
     nlapiGetOldRecord : nlapiGetOldRecord,
     nlapiSubmitField : nlapiSubmitField,
+    setOldRecord : setOldRecord,
   };
 
 };

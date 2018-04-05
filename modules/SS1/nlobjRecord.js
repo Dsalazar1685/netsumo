@@ -38,6 +38,11 @@ var nlobjRecord = function (recordtype, internalid) {
     return undefined;
   }
 
+  var getFieldText = function(name) {
+    //in Netsuite, this translates the internal id of a text value into the text it represents.  We're simplifying it here.
+    return fieldValues[name];
+  }
+
   var getLineItemCount = function(group) {
     var items = lineItemOptions[group];
     if (items) {
@@ -198,6 +203,7 @@ var nlobjRecord = function (recordtype, internalid) {
   return {
     setFieldValue : setFieldValue,
     getFieldValue : getFieldValue,
+    getFieldText : getFieldText,
     getLineItemCount : getLineItemCount,
     setLineItemValue : setLineItemValue,
     getLineItemValue : getLineItemValue,
